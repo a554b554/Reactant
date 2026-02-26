@@ -90,7 +90,7 @@ The agent processes every annotation top-to-bottom and writes results back into 
 ---
 
 
-**Reading the exampple annotation:**
+**Explaining the example annotation:**
 
 | Part | Meaning |
 |---|---|
