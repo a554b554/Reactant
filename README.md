@@ -2,243 +2,178 @@
 
 **Inline annotations that drive agentic writing workflows.**
 
-EAML lets you embed annotations directly inside your Markdown, LaTeX, or other text files to tell an AI agent (e.g., Claude Code) *exactly* what to rewrite, expand, fact-check, cite, or any your customized agentic workflow — right next to the text it should act on.
+EAML lets you write `<@skill: prompt>` tags directly in your text. An AI agent scans the file, dispatches each tag to the matching skill, and applies the result in place — no special file format, no copy-paste loops.
 
 ```
-                    your document
-                    ┌─────────────────────────────────────────────┐
-                    │ ...regular text...                          │
-                    │                                             │
-                    │ @text to edit@<prompt rewrite for clarity>  │
-                    │                                             │
-                    │ ...more text...                             │
-                    └─────────────────────────────────────────────┘
-                                        │
-                              /execute file.eaml
-                              (in your AI agent terminal)
-                                        │
-                                        ▼
-                    ┌─────────────────────────────────────────────┐
-                    │ ...regular text...                          │
-                    │                                             │
-                    │ rewritten, clearer text                     │
-                    │                                             │
-                    │ ...more text...                             │
-                    └─────────────────────────────────────────────┘
+              your document
+              ┌──────────────────────────────────────────────┐
+              │ ...regular text...                           │
+              │                                              │
+              │ This paragraf needs fixing. <@proofread>     │
+              │                                              │
+              │ ...more text...                              │
+              └──────────────────────────────────────────────┘
+                                  │
+                        /execute file.md
+                                  │
+                                  ▼
+              ┌──────────────────────────────────────────────┐
+              │ ...regular text...                           │
+              │                                              │
+              │ This paragraph needs fixing.                 │
+              │                                              │
+              │ ...more text...                              │
+              └──────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Quick start
 
-> **Prerequisites:** An AI coding agent that supports [Agent Skills](https://agentskills.io/home) (e.g. Claude Code, Codex, Cursor).
+> **Prerequisites:** An AI coding agent that supports [Agent Skills](https://agentskills.io/home) (e.g., Claude Code, Codex, Cursor).
 
 **1. Install the skills**
 
-Simpy copy the `skills/` folder into your agent's skills directory. For example, in Claude Code:
+Copy the `skills/` folder into your agent's skills directory.
 
-```
-.claude/
-  skills/
-    execute/
-    prompt/
-    verify/
-    cite/
-    ...
-```
+**2. Annotate your text**
 
-**2. Create an annotated file**
-
-Write your document as usual, then add EAML annotations where you want AI help. You can either save it with an `.eaml` extension (e.g. `notes.md.eaml`) or edit the native file directly (e.g. `notes.md`).
-
-**Minimal example**
-
-```text
----
-target: notes.md
-description: Personal research notes; keep the tone concise and technical.
-sigil: "@"
-delimiter: "<>"
----
-
-<context style>
-- Prefer short sentences.
-- Keep terminology consistent.
-</context style>
-
-@Transformers are strong baselines for sequence modeling, but they can be
-compute-heavy at long context lengths.@<param context:style output:replace><prompt Rewrite for clarity in 2 sentences. Preserve any numbers or equations.>
-```
+Write `<@skill: prompt>` tags directly in any file where you want AI help. No special file extension or YAML header needed.
 
 **3. Run it**
 
-In your agent's chat interface, type:
-
 ```
-/execute notes.md.eaml
+/execute myfile.md
 ```
 
-The agent processes every annotation top-to-bottom and writes results back into the same file.
-
-**Optional helper commands:**
-
-| Command | What it does |
-|---|---|
-| `/prep <file>` | Creates `<file>.eaml` from an existing file, escaping any characters that conflict with EAML syntax. |
-| `/render <file>.eaml` | Produces a clean output file with all annotations stripped. |
+The agent processes every `<@...>` tag top-to-bottom and writes results back into the same file.
 
 ---
 
+## Grammar
 
-**Explaining the example annotation:**
-
-| Part | Meaning |
-|---|---|
-| `@...@` | The only text the agent is allowed to edit. |
-| `<param context:style output:replace>` | Attach the `style` context block; replace the scoped text with the result. |
-| `<prompt ...>` | Call `prompt` skill ("who to process this"), with instructions ("what to do"). |
-
-
-After you run `/execute`, the runtime may also insert `<output ...>` (the result) and `<hash ...>` (a fingerprint for skipping unchanged work on re-runs). You don't write these by hand.
-
----
-
-## Why EAML
-
-Today's AI writing tools force you into one of two awkward workflows: either you paste text into a chatbot and copy results back, or you hand an agent your entire document and hope it doesn't break what you didn't want changed.
-
-EAML fixes this. You mark *exactly* what you want help with, *right where it lives*, and the agent only touches those spans.
-
-- **No copy-paste loops** — annotations live next to the text they affect. You stay in your editor; the agent comes to you.
-- **Surgical precision** — `@...@` scopes lock down what the agent can edit. Everything outside is untouched. `<<...>>` protects specific numbers, quotes, or citations even inside an editable span.
-- **Context without noise** — `<context ...>` blocks feed the agent only the background it needs, not your whole document. Less noise means better output.
-- **One file, many tasks** — each annotation runs in isolation with its own thread, so a rewrite request in paragraph 2 never interferes with a fact-check in paragraph 10.
-- **Incremental runs** — change one annotation and re-run; unchanged ones are skipped automatically via `<hash>`. No wasted tokens, no redundant rewrites.
-- **Extensible via Agent Skills** — each workflow is a plain `SKILL.md` file following the [Agent Skills](https://agentskills.io/home) framework. Write your own skill to handle any custom request — no plugin API, no core language changes.
-- **Installation free** — just copy the skills folder into your agent's skills directory. No packages, no build steps, no dependencies.
-- **Native Agentic** — works with any agent that supports skill feature (Claude Code, Codex, Cursor, and more). 
-
----
-
-## Syntax at a glance
-
-### Full directive (scoped edit)
-
-```text
-@editable text@<prompt improve wording>
+```
+<@skill-name: prompt>
 ```
 
-Only the text inside `@...@` is editable.
+- `skill-name` — which skill to run.
+- `prompt` — additional instructions for the skill (optional for some skills like `proofread`).
 
-### Inline directive (act near here)
+Tags are written inline, directly in the original text. After processing, the tag is removed and replaced with the skill's output (or appended, depending on the skill).
 
-```text
-This paragraph needs a reference. <cite APA>
-```
-
-No `@...@` span — the runtime uses the surrounding paragraph as context.
-
-### Context blocks (reusable background)
-
-Define a named block once:
-
-```text
-<context objectives>
-1. Make the intro accessible.
-2. Keep technical accuracy.
-</context objectives>
-```
-
-Then attach it to any request via `<param>`:
-
-```text
-@text@<param context:objectives><prompt expand this>
-```
-
-### Protected spans (never edit)
-
-```text
-Our method improved accuracy by <<3.2%>>. <prompt proofread>
-```
-
-Text inside `<<...>>` is preserved exactly, even when the surrounding text is rewritten.
-
-### Escapes
-
-Use backslash for literal reserved characters:
-
-- `\@` → literal `@`
-- `\<` → literal `<`
-- `\>` → literal `>`
-
----
-
-## Directive fields reference
-
-| Field | Purpose |
-|---|---|
-| `@...@` | Editable scope for a full directive. |
-| `<<...>>` | Protected region; must not be altered. |
-| `<param ...>` | Execution settings (context, output mode, source). |
-| `<skillname ...>` | A request that dispatches to a skill (e.g. `<prompt ...>`, `<verify ...>`, `<cite ...>`). |
-| `<output ...>` | Result written by the runtime; also serves as local history for later requests. |
-| `<hash ...>` | Fingerprint used to skip unchanged annotations on re-run. |
-
-**Common `<param>` keys:**
-
-| Key | Example | Meaning |
-|---|---|---|
-| `context:` | `context:style;objectives` | Attach named context blocks. |
-| `output:` | `output:append`, `output:replace`, `output:file` | Control how results are written back. |
-| `source:` | `source:refs.bib`, `source:web` | Where research-oriented skills should look (`web`, `arxiv`, `local`, or a file path). |
+There is one special tag: `<@output: ...>` holds a skill's result for later use (e.g., a plan to be resolved). It is not dispatched — it serves as data for downstream skills.
 
 ---
 
 ## Built-in skills
 
-| Skill | What it does |
-|---|---|
-| `prompt` | Rewrite, expand, summarize, or generate text. |
-| `verify` | Fact-check claims (returns a verdict + references). |
-| `cite` | Find and format a citation (citation string or BibTeX). |
-| `placeholder` / `ph` | Inline-only filler for "TODO"-style slots. |
-| `plan` | Produce a revision plan instead of changing text. |
-| `resolve` | Finalize a prior output (accept / discard / integrate). |
+| Skill | Example | What it does |
+|---|---|---|
+| `edit` | `<@edit: make this more concise>` | Generic edit — modifies text according to the prompt. |
+| `proofread` | `<@proofread>` | Fixes grammar, spelling, and punctuation. |
+| `plan` | `<@plan: how to improve this>` | Appends a revision plan as `<@output: ...>`. |
+| `ph` | `<@ph>` | Fills a placeholder by inferring from context. |
+| `resolve` | `<@resolve>` | Applies a preceding plan to the content, removes all tags. |
+| `figure` | `<@figure: a diagram of the architecture>` | Generates a figure. *(Placeholder — requires Gemini API.)* |
 
 ---
 
-## What `/execute` does
+## Scope modifiers
 
-1. **Parse** — finds every annotation in the file, top to bottom.
-2. **Build tasks** — for each annotation, assembles the editable content (or inline neighborhood), relevant `<context>` blocks, the request (`<prompt>`, `<verify>`, etc.), and any prior `<output>` history.
-3. **Run skill** — dispatches to the matching skill in isolation.
-4. **Write back** — applies results according to the `output:` param (`replace` rewrites the `@...@` span; `append` keeps the original and attaches an `<output>` block).
-5. **Update hash** — stamps `<hash ...>` so unchanged annotations are skipped on the next run.
+Two inline delimiters give fine-grained control over which text a skill can touch.
 
----
+### Protect `<< >>`
 
-## Custom tokens
+Text inside `<< >>` is locked — skills must not modify it, even if it contains errors.
 
-If `@`, `<>`, or `<<>>` conflict with your document syntax, override them in frontmatter, e.g.:
-
-```yaml
----
-target: article.tex
-sigil: "%"
-delimiter: "{}"     # exactly 2 chars: open + close
-protect: "[[]]"     # open "[[" and close "]]"
----
 ```
+Cooking supports independence and health,
+<<such as sharp knives or hot pans.>>
+<@edit: make this shorter>
+```
+
+The edit shortens the surrounding text but leaves "such as sharp knives or hot pans." untouched.
+
+### Field `(( ))`
+
+Text inside `(( ))` is the *only* part the skill should modify — everything else is read-only context.
+
+```
+The system received ((positve feedbak from all partcipants.))
+<@proofread>
+```
+
+Only errors inside the field are corrected; the surrounding sentence stays as-is.
+
+Both modifiers work with all content-editing skills (`edit`, `proofread`, `ph`, `plan`, `resolve`). After processing, the delimiter characters are removed.
+
+---
+
+## Plan → Resolve workflow
+
+A two-pass workflow for structured revisions:
+
+**Pass 1 — Plan.** Add a plan tag and run `/execute`:
+```
+Your content here <@plan: how to make this easier to understand>
+```
+
+The plan skill appends its result:
+```
+Your content here <@plan: how to make this easier to understand><@output: simplify X and restructure Y>
+```
+
+**Pass 2 — Resolve.** Review the output (edit it if you like), add `<@resolve>`, and run `/execute` again:
+```
+Your content here <@plan: how to make this easier to understand><@output: simplify X and restructure Y><@resolve>
+```
+
+The resolve skill applies the plan and removes all tags:
+```
+Your revised content here
+```
+
+---
+
+## How `/execute` works
+
+1. **Read** the target file.
+2. **Scan** for all `<@...>` tags, top to bottom.
+3. **For each tag**:
+   - Skip `<@output: ...>` — it is data, not a dispatch target.
+   - **Dispatch** to the matching skill subagent with the file path, surrounding text, and prompt.
+   - The subagent applies its changes directly to the file.
+   - Re-read the file before processing the next tag.
+4. **Report** a summary of what was processed.
+
+Each skill decides how to write its output (replace the tag, append after it, etc.). See individual skill docs for details.
 
 ---
 
 ## Writing your own skill
 
-1. Create `v2/skills/<skillname>/SKILL.md` with YAML frontmatter (`name`, `description`).
-2. Define how the skill reads the standard extraction fields (`Original File`, `Content to Modify`, `Parameters`, `Context`, `Request`, `Output`, `Hash`).
-3. Define the skill's workflow
-4. Return plain text (or a documented format). Do not write files — `/execute` handles write-back.
+1. Create `skills/<skillname>/SKILL.md` with YAML frontmatter (`name`, `description`).
+2. Define the skill's input (context + prompt) and workflow.
+3. Add a row to the skill registry in `skills/execute/SKILL.md`.
+4. Keep it short and agentic — the skill is executed by a subagent, not by code.
 
+---
+
+## Examples
+
+The `examples/` directory contains test files for each skill and feature:
+
+| File | Coverage |
+|---|---|
+| `00_baseline.md` | No annotations — verifies no unintended changes. |
+| `01_edit.md` | Basic, tonal, and targeted edits. |
+| `02_proofread.md` | Spelling/grammar fixes, scoped proofreading. |
+| `03_plan.md` | Plan generation with structural and improvement goals. |
+| `04_ph.md` | Placeholder filling from context, with and without hints. |
+| `05_resolve.md` | Plan → resolve chains, including user-edited plans. |
+| `06_scope_protect.md` | Protect modifier `<< >>` with edit and proofread. |
+| `07_scope_field.md` | Field modifier `(( ))` with edit and proofread. |
+| `08–12_holistic_*.md` | Multi-skill documents: academic, memo, creative, technical, mixed. |
 
 ---
 
@@ -250,13 +185,10 @@ EAML/
 ├── examples/
 └── skills/
     ├── execute/
-    ├── prompt/
-    ├── verify/
-    ├── cite/
-    ├── placeholder/
+    ├── edit/
+    ├── proofread/
     ├── plan/
+    ├── ph/
     ├── resolve/
-    ├── prep/
-    ├── render/
-    └── <your-custom-skill>/
+    └── figure/
 ```
