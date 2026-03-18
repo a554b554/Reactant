@@ -1,194 +1,258 @@
-# EAML — Extensible Agentic Markup Language
+# EAML: Extensible Agentic Markup Language
 
-**Inline annotations that drive agentic writing workflows.**
+**Inline annotations for agentic document editing.**
 
-EAML lets you write `<@skill: prompt>` tags directly in your text. An AI agent scans the file, dispatches each tag to the matching skill, and applies the result in place — no special file format, no copy-paste loops.
+EAML lets you write tags like `<@proofread>`, `<@edit: ...>`, or `<@plan: ...>` directly inside a document. An agent scans the file, routes each tag to the matching skill, and writes the result back in place.
 
-```
-              your document
-              ┌──────────────────────────────────────────────┐
-              │ ...regular text...                           │
-              │                                              │
-              │ This paragraf needs fixing. <@proofread>     │
-              │                                              │
-              │ ...more text...                              │
-              └──────────────────────────────────────────────┘
-                                  │
-                        /execute file.md
-                                  │
-                                  ▼
-              ┌──────────────────────────────────────────────┐
-              │ ...regular text...                           │
-              │                                              │
-              │ This paragraph needs fixing.                 │
-              │                                              │
-              │ ...more text...                              │
-              └──────────────────────────────────────────────┘
-```
+## Example
 
----
+Before:
 
-## Quick start
-
-> **Prerequisites:** An AI coding agent that supports [Agent Skills](https://agentskills.io/home) (e.g., Claude Code, Codex, Cursor).
-
-**1. Install the skills**
-
-Copy the `skills/` folder into your agent's skills directory.
-
-**2. Annotate your text**
-
-Write `<@skill: prompt>` tags directly in any file where you want AI help. No special file extension or YAML header needed.
-
-**3. Run it**
-
-```
-/execute myfile.md
-```
-
-The agent processes every `<@...>` tag top-to-bottom and writes results back into the same file.
-
----
-
-## Grammar
-
-```
-<@skill-name: prompt>
-```
-
-- `skill-name` — which skill to run.
-- `prompt` — additional instructions for the skill (optional for some skills like `proofread`).
-
-Tags are written inline, directly in the original text. After processing, the tag is removed and replaced with the skill's output (or appended, depending on the skill).
-
-There is one special tag: `<@output: ...>` holds a skill's result for later use (e.g., a plan to be resolved). It is not dispatched — it serves as data for downstream skills.
-
----
-
-## Built-in skills
-
-| Skill | Example | What it does |
-|---|---|---|
-| `edit` | `<@edit: make this more concise>` | Generic edit — modifies text according to the prompt. |
-| `proofread` | `<@proofread>` | Fixes grammar, spelling, and punctuation. |
-| `plan` | `<@plan: how to improve this>` | Appends a revision plan as `<@output: ...>`. |
-| `ph` | `<@ph>` | Fills a placeholder by inferring from context. |
-| `resolve` | `<@resolve>` | Applies a preceding plan to the content, removes all tags. |
-| `figure` | `<@figure: a diagram of the architecture>` | Generates a figure. *(Placeholder — requires Gemini API.)* |
-
----
-
-## Scope modifiers
-
-Two inline delimiters give fine-grained control over which text a skill can touch.
-
-### Protect `<< >>`
-
-Text inside `<< >>` is locked — skills must not modify it, even if it contains errors.
-
-```
-Cooking supports independence and health,
-<<such as sharp knives or hot pans.>>
-<@edit: make this shorter>
-```
-
-The edit shortens the surrounding text but leaves "such as sharp knives or hot pans." untouched.
-
-### Field `(( ))`
-
-Text inside `(( ))` is the *only* part the skill should modify — everything else is read-only context.
-
-```
-The system received ((positve feedbak from all partcipants.))
+```md
+As of last week, we have complted the migration of our internal documantation pipeline from the legacy system to the new platfrom. The migratoin was completed ahed of schedual.
 <@proofread>
 ```
 
-Only errors inside the field are corrected; the surrounding sentence stays as-is.
+Run (in your AI Agent like Claude Code):
 
-Both modifiers work with all content-editing skills (`edit`, `proofread`, `ph`, `plan`, `resolve`). After processing, the delimiter characters are removed.
-
----
-
-## Plan → Resolve workflow
-
-A two-pass workflow for structured revisions:
-
-**Pass 1 — Plan.** Add a plan tag and run `/execute`:
-```
-Your content here <@plan: how to make this easier to understand>
+```text
+/execute memo.md
 ```
 
-The plan skill appends its result:
-```
-Your content here <@plan: how to make this easier to understand><@output: simplify X and restructure Y>
-```
+After:
 
-**Pass 2 — Resolve.** Review the output (edit it if you like), add `<@resolve>`, and run `/execute` again:
-```
-Your content here <@plan: how to make this easier to understand><@output: simplify X and restructure Y><@resolve>
+```md
+As of last week, we have completed the migration of our internal documentation pipeline from the legacy system to the new platform. The migration was completed ahead of schedule.
 ```
 
-The resolve skill applies the plan and removes all tags:
+The same pattern works for targeted rewrites, placeholder filling, planning, plan resolution, and figure generation.
+
+## Quick Start
+
+> Prerequisite: an AI agent that supports skills, such as Codex, Claude Code, or Cursor with an equivalent skill workflow.
+
+1. Copy the [`skills/`](./skills) directory into your agent's skills location. (e.g., `.claude/` in Claude Code)
+2. Add EAML tags directly inside a document.
+3. Run:
+
+```text
+/execute your-file.md
 ```
-Your revised content here
+
+The executor scans the file top-to-bottom, dispatches each tag to the matching skill, and re-reads the file after every change.
+
+## Core Syntax
+
+### Skill Tags
+
+```text
+<@skill-name: prompt>
 ```
 
----
+- `skill-name` selects the skill to run.
+- `prompt` is optional for some skills, such as `proofread`, `ph`, and `figure`.
 
-## How `/execute` works
+Examples:
 
-1. **Read** the target file.
-2. **Scan** for all `<@...>` tags, top to bottom.
-3. **For each tag**:
-   - Skip `<@output: ...>` — it is data, not a dispatch target.
-   - **Dispatch** to the matching skill subagent with the file path, surrounding text, and prompt.
-   - The subagent applies its changes directly to the file.
-   - Re-read the file before processing the next tag.
-4. **Report** a summary of what was processed.
+```md
+<@proofread>
+<@edit: make this shorter>
+<@plan: restructure this into two paragraphs>
+<@ph: a transition sentence leading into our contribution>
+<@figure: a system architecture diagram>
+```
 
-Each skill decides how to write its output (replace the tag, append after it, etc.). See individual skill docs for details.
+### Special Data Tag
 
----
+```text
+<@output: ...>
+```
 
-## Writing your own skill
+`<@output: ...>` is not dispatched as a skill. It stores data for downstream steps, most notably the `plan -> resolve` workflow.
 
-1. Create `skills/<skillname>/SKILL.md` with YAML frontmatter (`name`, `description`).
-2. Define the skill's input (context + prompt) and workflow.
-3. Add a row to the skill registry in `skills/execute/SKILL.md`.
-4. Keep it short and agentic — the skill is executed by a subagent, not by code.
+### Scope Modifiers
 
----
+EAML includes two inline scope controls for content-editing skills.
+
+`<<protect>>`
+
+- Protected text must remain unchanged.
+- The delimiters are removed during output.
+
+`((field))`
+
+- Only the text inside the field may be changed.
+- Everything outside the field is read-only context.
+- The delimiters are removed during output.
+
+Example:
+
+```md
+The system was designed to help users complete complex tasks. It received ((positve feedbak from all partcipants.))
+<@proofread>
+```
+
+After execution:
+
+```md
+The system was designed to help users complete complex tasks. It received positive feedback from all participants.
+```
+
+### Context References
+
+Prompts may contain context references wrapped in double backticks:
+
+```text
+``path/or/resource``
+```
+
+Skills use these references to read additional context or, for some skills, write output to a destination file.
+
+Examples:
+
+```md
+<@edit: revise to match the terminology in ``glossary.md``>
+<@plan: align this section with ``intro.md``>
+<@figure: create a pipeline diagram and save it to ``figures/pipeline.png``>
+```
+
+## Built-In Skills
+
+| Skill | Tag form | Purpose |
+|---|---|---|
+| `execute` | `/execute file.md` | Router that scans a file and dispatches all EAML tags. |
+| `edit` | `<@edit: ...>` | Rewrites surrounding text according to the prompt. |
+| `proofread` | `<@proofread>` / `<@proofread: ...>` | Fixes grammar, spelling, and punctuation without changing meaning. |
+| `plan` | `<@plan: ...>` | Appends a revision plan as an `<@output: ...>` tag. |
+| `ph` | `<@ph>` / `<@ph: ...>` | Fills a placeholder from local context. |
+| `resolve` | `<@resolve>` | Applies a preceding `<@output: ...>` plan and removes the full tag chain. |
+| `figure` | `<@figure>` / `<@figure: ...>` | Generates an image and replaces the tag with an image reference. |
+
+## Execution Model
+
+The executor skill, defined in [`skills/execute/SKILL.md`](./skills/execute/SKILL.md), works as follows:
+
+1. Read the target file.
+2. Scan for `<@...>` tags from top to bottom.
+3. Skip `<@output: ...>` tags because they are data, not dispatch targets.
+4. For each other tag, look up the matching skill in the registry.
+5. Invoke that skill with the file path, surrounding text, and prompt.
+6. Re-read the file before moving to the next tag.
+7. Report a brief summary.
+
+Sequential execution is intentional. Earlier edits may shift later text spans, so parallel writes would be unsafe.
+
+## Plan and Resolve
+
+This repo supports a two-pass revision workflow.
+
+Pass 1:
+
+```md
+The annotation grammar is intentionally minimal, but this simplicity comes at a cost.
+<@plan: suggest how to restructure this into a strength-then-limitation framing>
+```
+
+After running `/execute`, the plan skill appends:
+
+```md
+The annotation grammar is intentionally minimal, but this simplicity comes at a cost.
+<@plan: suggest how to restructure this into a strength-then-limitation framing>
+<@output: ...revision plan here...>
+```
+
+Pass 2:
+
+```md
+The annotation grammar is intentionally minimal, but this simplicity comes at a cost.
+<@plan: suggest how to restructure this into a strength-then-limitation framing>
+<@output: ...revision plan here...>
+<@resolve>
+```
+
+`resolve` applies the plan to the original content, respects scope modifiers, and removes the entire tag chain.
+
+## Figure Generation
+
+The `figure` skill uses the Gemini image API and expects `GEMINI_API_KEY` to be set. It writes the generated image next to the source document unless the prompt supplies an explicit output path via a context reference.
+
+For Markdown files, `<@figure>` is replaced with:
+
+```md
+![description](generated_figure.png)
+```
+
+For LaTeX files, it is replaced with:
+
+```tex
+\includegraphics{generated_figure.png}
+```
 
 ## Examples
 
-The `examples/` directory contains test files for each skill and feature:
+The [`examples/`](./examples) directory is organized as a compact test suite for the language:
 
-| File | Coverage |
+| File | Focus |
 |---|---|
-| `00_baseline.md` | No annotations — verifies no unintended changes. |
-| `01_edit.md` | Basic, tonal, and targeted edits. |
-| `02_proofread.md` | Spelling/grammar fixes, scoped proofreading. |
-| `03_plan.md` | Plan generation with structural and improvement goals. |
-| `04_ph.md` | Placeholder filling from context, with and without hints. |
-| `05_resolve.md` | Plan → resolve chains, including user-edited plans. |
-| `06_scope_protect.md` | Protect modifier `<< >>` with edit and proofread. |
-| `07_scope_field.md` | Field modifier `(( ))` with edit and proofread. |
-| `08–12_holistic_*.md` | Multi-skill documents: academic, memo, creative, technical, mixed. |
+| [`examples/00_baseline.md`](./examples/00_baseline.md) | No annotations; verifies no-op execution. |
+| [`examples/01_edit.md`](./examples/01_edit.md) | Basic and targeted edits. |
+| [`examples/02_proofread.md`](./examples/02_proofread.md) | Proofreading, punctuation-only prompts, and style preservation. |
+| [`examples/03_plan.md`](./examples/03_plan.md) | Revision-plan generation. |
+| [`examples/04_ph.md`](./examples/04_ph.md) | Placeholder completion with and without hints. |
+| [`examples/05_resolve.md`](./examples/05_resolve.md) | Plan generation followed by user-edited resolve flows. |
+| [`examples/06_scope_protect.md`](./examples/06_scope_protect.md) | Protected regions with `<< >>`. |
+| [`examples/07_scope_field.md`](./examples/07_scope_field.md) | Editable field regions with `(( ))`. |
+| [`examples/08_holistic_academic.md`](./examples/08_holistic_academic.md) | Mixed academic-writing workflow. |
+| [`examples/09_holistic_memo.md`](./examples/09_holistic_memo.md) | Mixed professional memo workflow. |
+| [`examples/10_holistic_creative.md`](./examples/10_holistic_creative.md) | Mixed creative-writing workflow. |
+| [`examples/11_holistic_technical.md`](./examples/11_holistic_technical.md) | Mixed technical-documentation workflow. |
+| [`examples/12_holistic_mixed.md`](./examples/12_holistic_mixed.md) | Stress test combining many tags and scope modifiers. |
+| [`examples/13_figure_newton.md`](./examples/13_figure_newton.md) | Figure-generation example. |
 
----
+## Repository Structure
 
-## Repo layout
-
-```
+```text
 EAML/
 ├── README.md
 ├── examples/
+│   ├── 00_baseline.md
+│   ├── 01_edit.md
+│   ├── 02_proofread.md
+│   ├── 03_plan.md
+│   ├── 04_ph.md
+│   ├── 05_resolve.md
+│   ├── 06_scope_protect.md
+│   ├── 07_scope_field.md
+│   ├── 08_holistic_academic.md
+│   ├── 09_holistic_memo.md
+│   ├── 10_holistic_creative.md
+│   ├── 11_holistic_technical.md
+│   ├── 12_holistic_mixed.md
+│   └── 13_figure_newton.md
 └── skills/
-    ├── execute/
     ├── edit/
-    ├── proofread/
-    ├── plan/
+    │   └── SKILL.md
+    ├── execute/
+    │   └── SKILL.md
+    ├── figure/
+    │   └── SKILL.md
     ├── ph/
-    ├── resolve/
-    └── figure/
+    │   └── SKILL.md
+    ├── plan/
+    │   └── SKILL.md
+    ├── proofread/
+    │   └── SKILL.md
+    └── resolve/
+        └── SKILL.md
 ```
+
+Each skill is defined entirely in its own `SKILL.md`, which keeps the system extensible and agent-native.
+
+## Adding a New Skill
+
+1. Create `skills/<name>/SKILL.md`.
+2. Add YAML frontmatter with at least `name` and `description`.
+3. Define the skill's expected inputs, workflow, and rules.
+4. Register the new tag in [`skills/execute/SKILL.md`](./skills/execute/SKILL.md).
+
+That is enough for the executor to route `<@your-skill: ...>` tags to the new skill.

@@ -28,10 +28,20 @@ The surrounding text may contain scope modifier tags that control which regions 
 
 If neither modifier is present, the entire surrounding text is editable (default behavior).
 
+## Context References
+
+The prompt may contain **context references** wrapped in double backticks (`` `` ``). These point to external resources (file paths, section titles, etc.) that you should look up.
+
+- **As input**: Read the referenced resource and use it as additional context when applying the edit. E.g., `<@edit: revise to connect with ``intro.md``>` — read `intro.md` and use its content to inform your edit.
+- **As output**: Write results to the referenced destination. E.g., `<@edit: extract this into ``appendix.md``>` — write the extracted content to `appendix.md`.
+- Resolve references relative to the source file's directory unless an absolute path is given.
+- Remove the `` `` delimiters from the output.
+
 ## Rules
 
 - Only change what the prompt asks for.
 - Preserve meaning unless instructed otherwise.
 - Respect scope modifiers: never edit protected regions, only edit field regions when present.
-- The `<@edit: ...>` tag and all scope modifier delimiters (`<< >>`, `(( ))`) must be removed in the output.
+- Resolve all context references (`` `` ``) in the prompt before applying edits.
+- The `<@edit: ...>` tag and all modifier delimiters (`<< >>`, `(( ))`, `` `` ``) must be removed in the output.
 

@@ -28,9 +28,14 @@ The surrounding text may contain scope modifier tags. When producing a plan, tak
 
 Preserve all scope modifier delimiters as-is in the output — they will be consumed later by `<@resolve>`.
 
-## Rules
+## Context References
 
-- List specific, actionable suggestions.
-- Keep the plan concise.
-- Respect scope modifiers: do not plan edits to protected regions or outside field regions.
-- The `<@plan>` tag and original content stay; only append `<@output>`.
+The prompt may contain **context references** wrapped in double backticks (`` `` ``). These point to external resources (file paths, section titles, etc.) that you should look up.
+
+- **As input**: Read the referenced resource and use it as additional context when producing the plan. E.g., `<@plan: how to align this with ``intro.md``>` — read `intro.md` and incorporate its content into your analysis.
+- **As output**: If the prompt specifies an output destination via a context reference, write the plan to that file instead of inline. Then append `<@output: the plan is written in ``path``>` after the `<@plan>` tag so `<@resolve>` knows where to find it.
+- Resolve references relative to the source file's directory unless an absolute path is given.
+- Preserve `` `` delimiters in the output (they will be consumed later by `<@resolve>`).
+
+## Notes
+- The `<@plan>` tag and its prompt and original content stay; only append `<@output>`.

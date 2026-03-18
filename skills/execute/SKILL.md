@@ -21,6 +21,10 @@ Route all `<@skill-name: ...>` annotations in a file to their matching skill sub
 
 Tags are written inline, directly in the original text. `<@output: ...>` is a special data tag — never dispatched, only consumed by other skills.
 
+### Modifiers
+
+Prompts may contain **context references** (`` ``path`` ``) that point the skill agent to external resources (files, sections, etc.). The execute router does not interpret these — they are passed through to the subagent as part of the prompt.
+
 ## Skill registry
 
 | Tag | Skill | Description |
@@ -46,7 +50,8 @@ Each subagent is responsible for applying its own changes directly to the file. 
 
 ## Workflow
 
-1. **Read** the target file.
+1. **Clear context** — disregard all prior conversation context. Start fresh with only this skill's instructions.
+2. **Read** the target file.
 2. **Scan** for all `<@...>` tags, top to bottom.
 3. **For each tag**:
    - Skip `<@output: ...>` — it is data, not a dispatch target.
@@ -63,3 +68,4 @@ Each subagent is responsible for applying its own changes directly to the file. 
 - Skip `<@output: ...>` tags.
 - Re-read the file after each subagent completes.
 - Unknown skill: skip and warn.
+- Do not stop until all tags have been processed.

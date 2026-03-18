@@ -28,9 +28,18 @@ The surrounding text may contain scope modifier tags that control which regions 
 
 If neither modifier is present, the entire surrounding text is editable (default behavior).
 
+## Context References
+
+The prompt may contain **context references** wrapped in double backticks (`` `` ``). These point to external resources (file paths, section titles, etc.) that you should look up.
+
+- **As input**: Read the referenced resource for additional context (e.g., to understand domain-specific terminology that should not be flagged). E.g., `<@proofread: use terminology from ``glossary.md``>`.
+- Resolve references relative to the source file's directory unless an absolute path is given.
+- Remove the `` `` delimiters from the output.
+
 ## Rules
 
 - Do not change meaning, tone, or style.
 - Only fix errors; do not rewrite.
 - Respect scope modifiers: never edit protected regions, only edit field regions when present.
-- The `<@proofread>` tag and all scope modifier delimiters (`<< >>`, `(( ))`) must be removed in the output.
+- Resolve all context references (`` `` ``) in the prompt before applying fixes.
+- The `<@proofread>` tag and all modifier delimiters (`<< >>`, `(( ))`, `` `` ``) must be removed in the output.
