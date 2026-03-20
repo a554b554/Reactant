@@ -190,63 +190,8 @@ For LaTeX files, it is replaced with:
 
 ## Examples
 
-The [`examples/`](./examples) directory is organized as a compact test suite for the language:
+The [`examples/`](./examples) directory is organized as a compact test suite for the language.
 
-| File | Focus |
-|---|---|
-| [`examples/00_baseline.md`](./examples/00_baseline.md) | No annotations; verifies no-op execution. |
-| [`examples/01_edit.md`](./examples/01_edit.md) | Basic and targeted edits. |
-| [`examples/02_proofread.md`](./examples/02_proofread.md) | Proofreading, punctuation-only prompts, and style preservation. |
-| [`examples/03_plan.md`](./examples/03_plan.md) | Revision-plan generation. |
-| [`examples/04_ph.md`](./examples/04_ph.md) | Placeholder completion with and without hints. |
-| [`examples/05_resolve.md`](./examples/05_resolve.md) | Plan generation followed by user-edited resolve flows. |
-| [`examples/06_scope_protect.md`](./examples/06_scope_protect.md) | Protected regions with `<< >>`. |
-| [`examples/07_scope_field.md`](./examples/07_scope_field.md) | Editable field regions with `(( ))`. |
-| [`examples/08_holistic_academic.md`](./examples/08_holistic_academic.md) | Mixed academic-writing workflow. |
-| [`examples/09_holistic_memo.md`](./examples/09_holistic_memo.md) | Mixed professional memo workflow. |
-| [`examples/10_holistic_creative.md`](./examples/10_holistic_creative.md) | Mixed creative-writing workflow. |
-| [`examples/11_holistic_technical.md`](./examples/11_holistic_technical.md) | Mixed technical-documentation workflow. |
-| [`examples/12_holistic_mixed.md`](./examples/12_holistic_mixed.md) | Stress test combining many tags and scope modifiers. |
-| [`examples/13_figure_newton.md`](./examples/13_figure_newton.md) | Figure-generation example. |
-
-## Repository Structure
-
-```text
-EAML/
-├── README.md
-├── examples/
-│   ├── 00_baseline.md
-│   ├── 01_edit.md
-│   ├── 02_proofread.md
-│   ├── 03_plan.md
-│   ├── 04_ph.md
-│   ├── 05_resolve.md
-│   ├── 06_scope_protect.md
-│   ├── 07_scope_field.md
-│   ├── 08_holistic_academic.md
-│   ├── 09_holistic_memo.md
-│   ├── 10_holistic_creative.md
-│   ├── 11_holistic_technical.md
-│   ├── 12_holistic_mixed.md
-│   └── 13_figure_newton.md
-└── skills/
-    ├── edit/
-    │   └── SKILL.md
-    ├── execute/
-    │   └── SKILL.md
-    ├── figure/
-    │   └── SKILL.md
-    ├── ph/
-    │   └── SKILL.md
-    ├── plan/
-    │   └── SKILL.md
-    ├── proofread/
-    │   └── SKILL.md
-    └── resolve/
-        └── SKILL.md
-```
-
-Each skill is defined entirely in its own `SKILL.md`, which keeps the system extensible and agent-native.
 
 ## Adding a New Skill
 
