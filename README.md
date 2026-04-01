@@ -6,20 +6,22 @@ A document-native, editor-agnostic annotation language that lets you embed AI in
 
 ```
 test.md
-The methodology section needs to clearly explain our approach
-to participant recruitment and data collection, including the
-screening criteria and the demographic breakdown of the sample.
-<@edit: shorten this>
+Augmented reality (AR) is a technology that overlays digital information,
+such as images, sounds, and text, onto the physical world in real time.
+It has been widely explored in domains including education, healthcare,
+manufacturing, and entertainment, demonstrating significant potential
+to enhance user experience and task performance across a variety of contexts.
+<@edit: make this shorter>
 ```
 
 After running ``/execute test.md`` in your AI Agent, the annotation is consumed and the paragraph is edited in place:
 
 ```
 test.md
-The methodology section should outline our participant
-recruitment approach, including screening criteria.
-Data collection procedures and sample demographics
-are detailed in the appendix.
+Augmented reality (AR) overlays digital content onto the real world in
+real time and has shown strong potential to improve user experience and
+task performance across fields such as education, healthcare,
+manufacturing, and entertainment.
 ```
 
 ## Quick Start
