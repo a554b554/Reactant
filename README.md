@@ -5,15 +5,17 @@ A document-native, editor-agnostic annotation language that lets you embed AI in
 ## Quick Example
 
 ```
+test.md
 The methodology section needs to clearly explain our approach
 to participant recruitment and data collection, including the
 screening criteria and the demographic breakdown of the sample.
-<@edit: shorten to two sentences>
+<@edit: shorten this>
 ```
 
-After running the command, the annotation is consumed and the paragraph is edited in place:
+After running ``/execute test.md`` in your AI Agent, the annotation is consumed and the paragraph is edited in place:
 
 ```
+test.md
 The methodology section should outline our participant
 recruitment approach, including screening criteria.
 Data collection procedures and sample demographics
