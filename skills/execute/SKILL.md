@@ -35,6 +35,8 @@ Prompts may contain **context references** (`` ``path`` ``) that point the skill
 | `<@ph>` / `<@ph: ...>` | `ph` | Fill placeholder from context. |
 | `<@resolve>` | `resolve` | Apply preceding plan/output chain. |
 | `<@figure: ...>` | `figure` | Generate a figure. *(Placeholder — needs Gemini API.)* |
+| `<@cite: ...>` | `cite` | Find and insert citations to support a claim. |
+| `<@plot: ...>` | `plot` | Generate and execute a data visualization script. |
 
 To add a new skill: create `skills/<name>/SKILL.md` and add a row to this table.
 
@@ -69,3 +71,5 @@ Each subagent is responsible for applying its own changes directly to the file. 
 - Re-read the file after each subagent completes.
 - Unknown skill: skip and warn.
 - Do not stop until all tags have been processed.
+- Do not touch anything else that is not from registered skill. Sometime author leave inline comment like [comment:], that is not for you.
+- Sometimes author use <@xx> for demonstration purpose, not ask you to execute it. You need to read the context carefully to avoid false trigger.

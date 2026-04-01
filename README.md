@@ -1,203 +1,153 @@
-# EAML: Extensible Agentic Markup Language
+# Reactant
 
-**Inline annotations for agentic document editing.**
+A document-native, editor-agnostic annotation language that lets you embed AI instructions directly in your writing and execute them in place.
 
-EAML lets you write tags like `<@proofread>`, `<@edit: ...>`, or `<@plan: ...>` directly inside a document. An agent scans the file, routes each tag to the matching skill, and writes the result back in place.
+## Quick Example
 
-## Example
-
-Before:
-
-```md
-As of last week, we have complted the migration of our internal documantation pipeline from the legacy system to the new platfrom. The migratoin was completed ahed of schedual.
-<@proofread>
+```
+The methodology section needs to clearly explain our approach
+to participant recruitment and data collection, including the
+screening criteria and the demographic breakdown of the sample.
+<@edit: shorten to two sentences>
 ```
 
-Run (in your AI Agent like Claude Code):
+After running the command, the annotation is consumed and the paragraph is edited in place:
 
-```text
-/execute memo.md
 ```
-
-After:
-
-```md
-As of last week, we have completed the migration of our internal documentation pipeline from the legacy system to the new platform. The migration was completed ahead of schedule.
+The methodology section should outline our participant
+recruitment approach, including screening criteria.
+Data collection procedures and sample demographics
+are detailed in the appendix.
 ```
-
-The same pattern works for targeted rewrites, placeholder filling, planning, plan resolution, and figure generation.
 
 ## Quick Start
 
-> Prerequisite: an AI agent that supports skills, such as Codex, Claude Code, or Cursor with an equivalent skill workflow.
+1. Copy the `skills/` folder into your AI agent's configuration directory:
+   - Claude Code: `.claude/skills/`
+   - Codex: `.agents/skills/`
+   - Or the equivalent directory for your agent.
 
-1. Copy the [`skills/`](./skills) directory into your agent's skills location. (e.g., `.claude/` in Claude Code)
-2. Add EAML tags directly inside a document.
-3. Run:
+2. Open any text file and add Reactant annotations inline.
 
-```text
-/execute your-file.md
-```
+3. In your AI agent, run:
+   ```
+   /execute filename.md
+   ```
+   The agent will scan the file for all `<@...>` tags and process them in order.
 
-The executor scans the file top-to-bottom, dispatches each tag to the matching skill, and re-reads the file after every change.
+Check out the `examples/` folder for ready-to-use sample files you can run with `/execute`.
 
 ## Core Syntax
 
-### Skill Tags
+An annotation follows this form:
 
-```text
+```
 <@skill-name: prompt>
 ```
 
-- `skill-name` selects the skill to run.
-- `prompt` is optional for some skills, such as `proofread`, `ph`, and `figure`.
+- **Skill name**: a keyword that identifies the operation (e.g., `edit`, `proofread`, `cite`).
+- **Prompt** (optional): natural-language instructions that elaborate the operation.
 
-Examples:
-
-```md
-<@proofread>
-<@edit: make this shorter>
-<@plan: restructure this into two paragraphs>
-<@ph: a transition sentence leading into our contribution>
-<@figure: a system architecture diagram>
-```
-
-### Special Data Tag
-
-```text
-<@output: ...>
-```
-
-`<@output: ...>` is not dispatched as a skill. It stores data for downstream steps, most notably the `plan -> resolve` workflow.
+Annotations are placed after the content you want to modify. After execution, each tag is consumed and its output replaces the content in place.
 
 ### Scope Modifiers
 
-EAML includes two inline scope controls for content-editing skills.
+**Protect `<< >>`** -- locks text so the agent cannot modify it:
 
-`<<protect>>`
-
-- Protected text must remain unchanged.
-- The delimiters are removed during output.
-
-`((field))`
-
-- Only the text inside the field may be changed.
-- Everything outside the field is read-only context.
-- The delimiters are removed during output.
-
-Example:
-
-```md
-The system was designed to help users complete complex tasks. It received ((positve feedbak from all partcipants.))
-<@proofread>
+```
+Our system achieves <<92.4%>> accuracy on the benchmark.
+<@edit: make more concise>
 ```
 
-After execution:
+The protected figure stays exactly as written; surrounding text is edited freely.
 
-```md
-The system was designed to help users complete complex tasks. It received positive feedback from all participants.
+**Field `(( ))`** -- restricts edits to only the enclosed text:
+
+```
+We found that ((participants from a local university who
+were recruited via email and compensated with course
+credit)) preferred our system.
+<@edit: shorten>
 ```
 
-### Context References
+Only the field content changes (e.g., to "university participants"); the framing sentence remains intact.
 
-Prompts may contain context references wrapped in double backticks:
+**Context Reference `` `` ``** -- points the agent to external resources:
 
-```text
-``path/or/resource``
+```
+<@edit: revise to align with ``intro.md``>
 ```
 
-Skills use these references to read additional context or, for some skills, write output to a destination file.
+References can serve as input (read a file for context) or as output destinations (save artifacts to a path). Multiple references are supported in a single annotation.
 
-Examples:
+### Plan and Resolve
 
-```md
-<@edit: revise to match the terminology in ``glossary.md``>
-<@plan: align this section with ``intro.md``>
-<@figure: create a pipeline diagram and save it to ``figures/pipeline.png``>
+For tasks that benefit from review before execution, use the plan-resolve workflow:
+
+```
+This section introduces our system and its benefits...
+<@plan: how to make this more compelling>
 ```
 
-## Built-In Skills
+The agent appends a structured plan as an `<@output>` tag without modifying the original text:
 
-| Skill | Tag form | Purpose |
-|---|---|---|
-| `execute` | `/execute file.md` | Router that scans a file and dispatches all EAML tags. |
-| `edit` | `<@edit: ...>` | Rewrites surrounding text according to the prompt. |
-| `proofread` | `<@proofread>` / `<@proofread: ...>` | Fixes grammar, spelling, and punctuation without changing meaning. |
-| `plan` | `<@plan: ...>` | Appends a revision plan as an `<@output: ...>` tag. |
-| `ph` | `<@ph>` / `<@ph: ...>` | Fills a placeholder from local context. |
-| `resolve` | `<@resolve>` | Applies a preceding `<@output: ...>` plan and removes the full tag chain. |
-| `figure` | `<@figure>` / `<@figure: ...>` | Generates an image and replaces the tag with an image reference. |
-
-## Execution Model
-
-The executor skill, defined in [`skills/execute/SKILL.md`](./skills/execute/SKILL.md), works as follows:
-
-1. Read the target file.
-2. Scan for `<@...>` tags from top to bottom.
-3. Skip `<@output: ...>` tags because they are data, not dispatch targets.
-4. For each other tag, look up the matching skill in the registry.
-5. Invoke that skill with the file path, surrounding text, and prompt.
-6. Re-read the file before moving to the next tag.
-7. Report a brief summary.
-
-Sequential execution is intentional. Earlier edits may shift later text spans, so parallel writes would be unsafe.
-
-## Plan and Resolve
-
-This repo supports a two-pass revision workflow.
-
-Pass 1:
-
-```md
-The annotation grammar is intentionally minimal, but this simplicity comes at a cost.
-<@plan: suggest how to restructure this into a strength-then-limitation framing>
+```
+This section introduces our system and its benefits...
+<@plan: how to make this more compelling>
+<@output 1. Open with a concrete problem.
+  2. Add a citation. 3. Forward reference.>
 ```
 
-After running `/execute`, the plan skill appends:
+You can refine the plan with follow-up `<@plan>` tags, edit the `<@output>` directly, or append `<@resolve>` to apply the plan and remove all intermediate tags:
 
-```md
-The annotation grammar is intentionally minimal, but this simplicity comes at a cost.
-<@plan: suggest how to restructure this into a strength-then-limitation framing>
-<@output: ...revision plan here...>
 ```
-
-Pass 2:
-
-```md
-The annotation grammar is intentionally minimal, but this simplicity comes at a cost.
-<@plan: suggest how to restructure this into a strength-then-limitation framing>
-<@output: ...revision plan here...>
+This section introduces our system and its benefits...
+<@plan: how to make this more compelling>
+<@output 1. Open with a concrete problem.
+  2. Add a citation. 3. Forward reference.>
 <@resolve>
 ```
 
-`resolve` applies the plan to the original content, respects scope modifiers, and removes the entire tag chain.
+After resolution, only the revised clean text remains.
 
-## Figure Generation
+### Figure and Plot
 
-The `figure` skill uses the Gemini image API and expects `GEMINI_API_KEY` to be set. It writes the generated image next to the source document unless the prompt supplies an explicit output path via a context reference.
+Reactant extends beyond text to multimodal content generation.
 
-For Markdown files, `<@figure>` is replaced with:
+**Figure** -- generates an image via an image-generation API:
 
-```md
-![description](generated_figure.png)
+```
+<@figure: a side-by-side comparison diagram of the three
+  interaction types, save to ``figures/types.png``>
 ```
 
-For LaTeX files, it is replaced with:
+**Plot** -- generates and executes a Python visualization script grounded in real data:
 
-```tex
-\includegraphics{generated_figure.png}
+```
+<@plot: create a grouped bar chart of task completion
+  time across three conditions, use ``data/results.csv``,
+  save to ``figures/completion_time.png``>
 ```
 
-## Examples
+The agent reads the data file, generates executable code (Matplotlib/Seaborn), runs it, and inserts the resulting figure reference.
 
-The [`examples/`](./examples) directory is organized as a compact test suite for the language.
+## Core Skills
 
+| Skill | Tag | Description |
+|---|---|---|
+| Edit | `<@edit>` | Modify surrounding content according to a natural-language instruction. |
+| Proofread | `<@proofread>` | Fix grammar, spelling, and punctuation without changing meaning. |
+| Placeholder | `<@ph>` | Infer and fill in missing content from surrounding context. |
+| Cite | `<@cite>` | Find and insert citations based on surrounding context. |
+| Plan | `<@plan>` | Produce a revision plan without modifying the original content; supports multi-turn conversation. |
+| Resolve | `<@resolve>` | Apply a preceding plan/output chain to the content and remove all intermediate tags. |
+| Figure | `<@figure>` | Generate a figure via an image-generation API based on the prompt or surrounding context. |
+| Plot | `<@plot>` | Generate and execute a visualization script for a given data file based on user instructions. |
 
-## Adding a New Skill
+## Adding New Skills
 
-1. Create `skills/<name>/SKILL.md`.
-2. Add YAML frontmatter with at least `name` and `description`.
-3. Define the skill's expected inputs, workflow, and rules.
-4. Register the new tag in [`skills/execute/SKILL.md`](./skills/execute/SKILL.md).
+1. Create a folder under `skills/` with your skill name (e.g., `skills/translate/`).
+2. Add a `SKILL.md` file that defines the skill's trigger tag, editing scope, workflow, scope modifier handling, and output mode.
+3. Register the skill in `skills/execute/SKILL.md` by adding a row to the skill registry table.
 
-That is enough for the executor to route `<@your-skill: ...>` tags to the new skill.
+The folder may also include optional `scripts/`, `references/`, and `assets/` subdirectories for executable code, supplementary documentation, and static resources.
