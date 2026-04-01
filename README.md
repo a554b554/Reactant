@@ -1,4 +1,4 @@
-# Reactant
+# Reactant: A Document-Native and Extensible Annotation Language for AI-Assisted Writing
 
 A document-native, editor-agnostic annotation language that lets you embed AI instructions directly in your writing and execute them in place.
 
