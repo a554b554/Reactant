@@ -1,0 +1,22 @@
+{
+  "name": "reactant",
+  "description": "A document-native annotation language for AI-assisted writing. Embed <@skill: prompt> tags inline and execute them in place — edit, proofread, cite, plan, resolve, placeholder, figure, and plot.",
+  "version": "1.0.0",
+  "author": {
+    "name": "a554b554"
+  },
+  "homepage": "https://github.com/a554b554/RS",
+  "repository": "https://github.com/a554b554/RS",
+  "license": "MIT",
+  "keywords": [
+    "writing",
+    "academic",
+    "annotation",
+    "editing",
+    "proofreading",
+    "citation",
+    "latex",
+    "markdown",
+    "ai-assisted-writing"
+  ]
+}

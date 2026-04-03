@@ -1,0 +1,16 @@
+{
+  "name": "reactant-marketplace",
+  "owner": {
+    "name": "a554b554"
+  },
+  "metadata": {
+    "description": "Plugin marketplace for Reactant — a document-native annotation language for AI-assisted writing."
+  },
+  "plugins": [
+    {
+      "name": "reactant",
+      "source": "./",
+      "description": "A document-native annotation language for AI-assisted writing. Embed <@skill: prompt> tags inline and execute them in place."
+    }
+  ]
+}
