@@ -26,6 +26,13 @@ manufacturing, and entertainment.
 
 ## Quick Start
 
+0. **Claude Code users** can install Reactant as a plugin. In your Claude Code terminal:
+   ```
+   /plugin marketplace add a554b554/Reactant
+   /plugin install reactant@reactant
+   ```
+   Skip to step 2 after installation.
+
 1. Copy the `skills/` folder into your AI agent's configuration directory:
    - Claude Code: `.claude/skills/`
    - Codex: `.agents/skills/`
