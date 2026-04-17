@@ -1,5 +1,10 @@
 # Reactant: A Document-Native and Extensible Annotation Language for AI-Assisted Writing
 
+![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
+![Platform](https://img.shields.io/badge/platform-Claude%20Code%20%7C%20Codex-brightgreen?style=flat-square)
+![Language](https://img.shields.io/badge/language-Markdown%20%2F%20Any%20Text-orange?style=flat-square)
+![Status](https://img.shields.io/badge/status-Active-success?style=flat-square)
+
 A document-native, editor-agnostic annotation language that lets you embed AI instructions directly in your writing and execute them in place.
 
 ## Quick Example
@@ -62,6 +67,8 @@ An annotation follows this form:
 Annotations are placed after the content you want to modify. After execution, each tag is consumed and its output replaces the content in place.
 
 ### Scope Modifiers
+
+![Protect](https://img.shields.io/badge/%3C%3C%20%3E%3E-Protect-red?style=flat-square) ![Field](https://img.shields.io/badge/((%20))-Field-blue?style=flat-square) ![Context](https://img.shields.io/badge/%60%60%20%60%60-Context%20Ref-green?style=flat-square)
 
 **Protect `<< >>`** -- locks text so the agent cannot modify it:
 
@@ -146,14 +153,14 @@ The agent reads the data file, generates executable code (Matplotlib/Seaborn), r
 
 | Skill | Tag | Description |
 |---|---|---|
-| Edit | `<@edit>` | Modify surrounding content according to a natural-language instruction. |
-| Proofread | `<@proofread>` | Fix grammar, spelling, and punctuation without changing meaning. |
-| Placeholder | `<@ph>` | Infer and fill in missing content from surrounding context. |
-| Cite | `<@cite>` | Find and insert citations based on surrounding context. |
-| Plan | `<@plan>` | Produce a revision plan without modifying the original content; supports multi-turn conversation. |
-| Resolve | `<@resolve>` | Apply a preceding plan/output chain to the content and remove all intermediate tags. |
-| Figure | `<@figure>` | Generate a figure via an image-generation API based on the prompt or surrounding context. |
-| Plot | `<@plot>` | Generate and execute a visualization script for a given data file based on user instructions. |
+| ![Edit](https://img.shields.io/badge/edit-4A90D9?style=flat-square) | `<@edit>` | Modify surrounding content according to a natural-language instruction. |
+| ![Proofread](https://img.shields.io/badge/proofread-50C878?style=flat-square) | `<@proofread>` | Fix grammar, spelling, and punctuation without changing meaning. |
+| ![Placeholder](https://img.shields.io/badge/placeholder-FF8C00?style=flat-square) | `<@ph>` | Infer and fill in missing content from surrounding context. |
+| ![Cite](https://img.shields.io/badge/cite-9B59B6?style=flat-square) | `<@cite>` | Find and insert citations based on surrounding context. |
+| ![Plan](https://img.shields.io/badge/plan-E74C3C?style=flat-square) | `<@plan>` | Produce a revision plan without modifying the original content; supports multi-turn conversation. |
+| ![Resolve](https://img.shields.io/badge/resolve-1ABC9C?style=flat-square) | `<@resolve>` | Apply a preceding plan/output chain to the content and remove all intermediate tags. |
+| ![Figure](https://img.shields.io/badge/figure-F39C12?style=flat-square) | `<@figure>` | Generate a figure via an image-generation API based on the prompt or surrounding context. |
+| ![Plot](https://img.shields.io/badge/plot-2ECC71?style=flat-square) | `<@plot>` | Generate and execute a visualization script for a given data file based on user instructions. |
 
 ## Adding New Skills
 
