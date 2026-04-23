@@ -37,6 +37,7 @@ Prompts may contain **context references** (`` ``path`` ``) that point the skill
 | `<@figure: ...>` | `figure` | Generate a figure. *(Placeholder — needs Gemini API.)* |
 | `<@cite: ...>` | `cite` | Find and insert citations to support a claim. |
 | `<@plot: ...>` | `plot` | Generate and execute a data visualization script. |
+| `<@latexify: ...>` | `latexify` | Convert textual annotations of mathematical equations and notations into LaTeX code. |
 
 To add a new skill: create `skills/<name>/SKILL.md` and add a row to this table.
 
